@@ -1,4 +1,4 @@
-# compiled output
+# Compiled output
 /dist
 /node_modules
 
@@ -13,8 +13,14 @@ lerna-debug.log*
 
 # OS
 .DS_Store
-# ENV
-*.env
+
+# Terraform
+.terraform
+*.tfstate
+*.tfstate.backup
+.terraformrc
+.terraform.lock.hcl
+terraform.tfvars
 
 # Tests
 /coverage
