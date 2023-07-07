@@ -1,3 +1,4 @@
+// todo: 일부 환경변수 github security 변수로 변경
 terraform {
   required_providers {
     aws = {
