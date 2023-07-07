@@ -11,18 +11,18 @@ provider "aws" {
   region = "ap-northeast-2"
 }
 
-resource "aws_vpc" "my_vpc" {
+resource "aws_vpc" "ecr_vpc" {
   cidr_block = "10.0.0.0/16"
 }
 
 resource "aws_subnet" "private_subnet_1" {
-  vpc_id            = aws_vpc.my_vpc.id
+  vpc_id            = aws_vpc.ecr_vpc.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "ap-northeast-2a"
 }
 
 resource "aws_subnet" "private_subnet_2" {
-  vpc_id            = aws_vpc.my_vpc.id
+  vpc_id            = aws_vpc.ecr_vpc.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "ap-northeast-2b"
 }
@@ -103,13 +103,13 @@ resource "aws_lb_target_group" "ecr_target_group" {
   name     = "ecr-target-group"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.my_vpc.id
+  vpc_id   = aws_vpc.ecr_vpc.id
 }
 
 resource "aws_security_group" "ecr_security_group" {
-  vpc_id      = aws_vpc.my_vpc.id
-  name        = "my-security-group"
-  description = "My Security Group"
+  vpc_id      = aws_vpc.ecr_vpc.id
+  name        = "ecr-security-group"
+  description = "ECR Security Group"
 }
 
 resource "aws_ecs_service" "dealver" {
@@ -125,6 +125,6 @@ resource "aws_ecs_service" "dealver" {
   }
 }
 
-resource "aws_internet_gateway" "my_igw" {
-  vpc_id = aws_vpc.my_vpc.id
+resource "aws_internet_gateway" "vpc_igw" {
+  vpc_id = aws_vpc.ecr_vpc.id
 }
