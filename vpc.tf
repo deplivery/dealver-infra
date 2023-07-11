@@ -5,25 +5,25 @@ resource "aws_vpc" "ecr_vpc" {
 resource "aws_subnet" "public_subnet_1" {
   vpc_id            = aws_vpc.ecr_vpc.id
   cidr_block        = "10.0.10.0/24"
-  availability_zone = "ap-northeast-2a"
+  availability_zone = "${var.AWS_REGION}a"
 }
 
 resource "aws_subnet" "public_subent_2" {
   vpc_id            = aws_vpc.ecr_vpc.id
   cidr_block        = "10.0.11.0/24"
-  availability_zone = "ap-northeast-2c"
+  availability_zone = "${var.AWS_REGION}c"
 }
 
 resource "aws_subnet" "private_subnet_1" {
   vpc_id            = aws_vpc.ecr_vpc.id
   cidr_block        = "10.0.0.0/24"
-  availability_zone = "ap-northeast-2a"
+  availability_zone = "${var.AWS_REGION}a"
 }
 
 resource "aws_subnet" "private_subnet_2" {
   vpc_id            = aws_vpc.ecr_vpc.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "ap-northeast-2c"
+  availability_zone = "${var.AWS_REGION}c"
 }
 
 resource "aws_internet_gateway" "vpc_igw" {
