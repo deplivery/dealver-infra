@@ -1,20 +1,22 @@
 resource "aws_iam_role" "execution_role" {
-  name = "ecs-task-execution-role"
+  name               = "${var.APP_NAME}-execution-task-role"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ecs-tasks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
+  tags = {
+    Name        = "${var.APP_NAME}-iam-role"
+    Environment = var.Environment
+  }
 }
-EOF
+
+data "aws_iam_policy_document" "assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {

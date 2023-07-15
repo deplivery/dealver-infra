@@ -1,46 +1,77 @@
 resource "aws_ecs_cluster" "ecs-cluster" {
-  name = "ecs-cluster"
+  name = "${var.APP_NAME}-${var.Environment}-cluster"
+
+  tags = {
+    Name        = "${var.APP_NAME}-ecs"
+    Environment = var.Environment
+  }
 }
 
 
-resource "aws_ecs_task_definition" "ecr_task_definition" {
-  family                   = "ecr-task-definition-family"
-  network_mode             = "awsvpc"
+resource "aws_ecs_task_definition" "ecs_task_definition" {
+  family                   = "${var.APP_NAME}-task"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
+  network_mode             = "awsvpc"
   memory                   = "512"
+  cpu                      = "256"
 
   execution_role_arn = aws_iam_role.execution_role.arn
+  task_role_arn      = aws_iam_role.execution_role.arn
 
   container_definitions = <<DEFINITION
-[
-  {
-    "name": "ecr-container",
-    "image": "${aws_ecr_repository.ecr-repository.repository_url}:latest",
-    "portMappings": [
-      {
-        "containerPort": 80,
-        "hostPort": 80,
-        "protocol": "tcp"
-      }
-    ],
-    "cpu": 256,
-    "memory": 512
-  }
-]
+  [
+    {
+      "name": "${var.APP_NAME}-${var.Environment}-container",
+      "image": "${aws_ecr_repository.repository.repository_url}:latest",
+      "entryPoint": [],
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000
+        }
+      ],
+      "cpu": 256,
+      "memory": 512,
+      "networkMode": "awsvpc"
+    }
+  ]
 DEFINITION
+
+  tags = {
+    Name        = "${var.APP_NAME}-ecs-td"
+    Environment = var.Environment
+  }
+}
+
+data "aws_ecs_task_definition" "main" {
+  task_definition = aws_ecs_task_definition.ecs_task_definition.family
 }
 
 
 resource "aws_ecs_service" "dealver" {
-  name            = "dealver"
-  cluster         = aws_ecs_cluster.ecs-cluster.id
-  task_definition = aws_ecs_task_definition.ecr_task_definition.arn
-  desired_count   = 2
-  launch_type     = "FARGATE"
+  name                = "${var.APP_NAME}-${var.Environment}-service"
+  cluster             = aws_ecs_cluster.ecs-cluster.id
+  task_definition     = "${aws_ecs_task_definition.ecs_task_definition.family}:${max(aws_ecs_task_definition.ecs_task_definition.revision, data.aws_ecs_task_definition.main.revision)}"
+  launch_type         = "FARGATE"
+  scheduling_strategy = "REPLICA"
+  desired_count       = 2
+
 
   network_configuration {
-    subnets         = [aws_subnet.private_subnet_1.id]
-    security_groups = [aws_security_group.ecr_security_group.id]
+    subnets          = [aws_subnet.private_subnet_1.id]
+    assign_public_ip = false
+    security_groups = [
+      aws_security_group.ecs.id,
+      aws_security_group.lb.id
+    ]
   }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.ecs_target_group.arn
+    container_name   = "${var.APP_NAME}-${var.Environment}-container"
+    container_port   = 3000
+  }
+
+  depends_on = [aws_lb_listener.alb_listener]
 }

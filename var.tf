@@ -3,3 +3,10 @@ variable "AWS_REGION" {
 }
 variable "AWS_ACCESS_KEY" {}
 variable "AWS_SECRET_KEY" {}
+variable "APP_NAME" {
+  default = "dealver"
+}
+
+variable "Environment" {
+  default = "dev"
+}
