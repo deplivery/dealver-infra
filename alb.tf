@@ -3,7 +3,7 @@ resource "aws_lb" "alb" {
   load_balancer_type = "application"
   subnets = [
     aws_subnet.public_subnet_1.id,
-    aws_subnet.public_subent_2.id
+    aws_subnet.public_subnet_2.id
   ]
   security_groups = [aws_security_group.lb.id]
 

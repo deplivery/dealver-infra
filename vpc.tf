@@ -19,7 +19,7 @@ resource "aws_subnet" "public_subnet_1" {
   }
 }
 
-resource "aws_subnet" "public_subent_2" {
+resource "aws_subnet" "public_subnet_2" {
   vpc_id            = aws_vpc.vpc.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "${var.AWS_REGION}c"
@@ -70,8 +70,52 @@ resource "aws_route_table" "public_route_table" {
   }
 }
 
-resource "aws_route_table_association" "public_route_table_association" {
+resource "aws_route_table_association" "public_route_table_association_1" {
   subnet_id      = aws_subnet.public_subnet_1.id
   route_table_id = aws_route_table.public_route_table.id
 }
 
+resource "aws_route_table_association" "public_route_table_association_2" {
+  subnet_id      = aws_subnet.public_subnet_2.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+
+resource "aws_eip" "gateway" {
+  count      = 2
+  vpc        = true
+  depends_on = [aws_internet_gateway.igw]
+}
+
+resource "aws_nat_gateway" "gateway" {
+  count = 2
+
+  subnet_id = element([
+    aws_subnet.public_subnet_1.id,
+    aws_subnet.public_subnet_2.id
+  ], count.index)
+
+  allocation_id = element(aws_eip.gateway.*.id, count.index)
+}
+
+
+
+resource "aws_route_table" "private" {
+  count  = 2
+  vpc_id = aws_vpc.vpc.id
+
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = element(aws_nat_gateway.gateway.*.id, count.index)
+  }
+}
+
+resource "aws_route_table_association" "private" {
+  count = 2
+  subnet_id = element([
+    aws_subnet.private_subnet_1.id,
+    aws_subnet.private_subnet_2.id
+  ], count.index)
+  route_table_id = element(aws_route_table.private.*.id, count.index)
+}

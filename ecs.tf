@@ -55,20 +55,21 @@ resource "aws_ecs_service" "dealver" {
   task_definition     = "${aws_ecs_task_definition.ecs_task_definition.family}:${max(aws_ecs_task_definition.ecs_task_definition.revision, data.aws_ecs_task_definition.main.revision)}"
   launch_type         = "FARGATE"
   scheduling_strategy = "REPLICA"
-  desired_count       = 2
+  desired_count       = 0
 
 
   network_configuration {
-    subnets          = [aws_subnet.private_subnet_1.id]
-    assign_public_ip = false
+    subnets = [
+      aws_subnet.private_subnet_1.id,
+      aws_subnet.private_subnet_2.id
+    ]
     security_groups = [
       aws_security_group.ecs.id,
-      aws_security_group.lb.id
     ]
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.ecs_target_group.arn
+    target_group_arn = aws_lb_target_group.ecs_target_group.id
     container_name   = "${var.APP_NAME}-${var.Environment}-container"
     container_port   = 3000
   }
