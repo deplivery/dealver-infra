@@ -81,41 +81,78 @@ resource "aws_route_table_association" "public_route_table_association_2" {
 }
 
 
-resource "aws_eip" "gateway" {
-  count      = 2
+
+resource "aws_eip" "gateway_1" {
   vpc        = true
   depends_on = [aws_internet_gateway.igw]
-}
+  lifecycle {
+    create_before_destroy = true
+  }
 
-resource "aws_nat_gateway" "gateway" {
-  count = 2
-
-  subnet_id = element([
-    aws_subnet.public_subnet_1.id,
-    aws_subnet.public_subnet_2.id
-  ], count.index)
-
-  allocation_id = element(aws_eip.gateway.*.id, count.index)
-}
-
-
-
-resource "aws_route_table" "private" {
-  count  = 2
-  vpc_id = aws_vpc.vpc.id
-
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = element(aws_nat_gateway.gateway.*.id, count.index)
+  tags = {
+    Name        = "${var.APP_NAME}-eip-1"
+    Environment = var.Environment
   }
 }
 
-resource "aws_route_table_association" "private" {
-  count = 2
-  subnet_id = element([
-    aws_subnet.private_subnet_1.id,
-    aws_subnet.private_subnet_2.id
-  ], count.index)
-  route_table_id = element(aws_route_table.private.*.id, count.index)
+resource "aws_eip" "gateway_2" {
+  vpc        = true
+  depends_on = [aws_internet_gateway.igw]
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name        = "${var.APP_NAME}-eip-2"
+    Environment = var.Environment
+  }
 }
+
+resource "aws_nat_gateway" "gateway_1" {
+  subnet_id     = aws_subnet.public_subnet_1.id
+  allocation_id = aws_eip.gateway_1.id
+
+  tags = {
+    Name        = "${var.APP_NAME}-gateway-1"
+    Environment = var.Environment
+  }
+}
+
+resource "aws_nat_gateway" "gateway_2" {
+  subnet_id     = aws_subnet.public_subnet_2.id
+  allocation_id = aws_eip.gateway_2.id
+
+  tags = {
+    Name        = "${var.APP_NAME}-gateway-2"
+    Environment = var.Environment
+  }
+}
+
+resource "aws_route_table" "route_table_private_1" {
+  vpc_id = aws_vpc.vpc.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.gateway_1.id
+  }
+}
+
+resource "aws_route_table" "route_table_private_2" {
+  vpc_id = aws_vpc.vpc.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.gateway_2.id
+  }
+}
+
+resource "aws_route_table_association" "private_route_table_association_1" {
+  subnet_id      = aws_subnet.private_subnet_1.id
+  route_table_id = aws_route_table.route_table_private_1.id
+}
+
+resource "aws_route_table_association" "private_route_table_association_2" {
+  subnet_id      = aws_subnet.private_subnet_2.id
+  route_table_id = aws_route_table.route_table_private_2.id
+}
+
