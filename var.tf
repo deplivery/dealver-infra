@@ -10,3 +10,6 @@ variable "APP_NAME" {
 variable "Environment" {
   default = "dev"
 }
+
+variable "DB_USER" {}
+variable "DB_PASSWORD" {}
