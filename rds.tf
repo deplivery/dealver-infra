@@ -20,6 +20,8 @@ resource "aws_db_instance" "mysql" {
   }
 }
 
+// public에 한 이유는 개발환경을 구축하기 위함으로 실제 운영환경에서는 private로 구축해야함
+// bastion도 사치!
 resource "aws_db_subnet_group" "default" {
   name        = "db-subnet-group"
   description = "Terraform example RDS subnet group"
