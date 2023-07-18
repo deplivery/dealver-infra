@@ -5,3 +5,8 @@ output "load_balancer_ip" {
 output "repository-URL" {
   value = aws_ecr_repository.repository.repository_url
 }
+
+
+output "db_instance_endpoint" {
+  value = aws_db_instance.mysql.endpoint
+}
