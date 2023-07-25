@@ -25,7 +25,7 @@ resource "aws_db_instance" "mysql" {
 resource "aws_db_subnet_group" "default" {
   name        = "db-subnet-group"
   description = "Terraform example RDS subnet group"
-  subnet_ids  = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id]
+  subnet_ids  = [aws_subnet.db_subnet_1.id, aws_subnet.db_sunbet_2.id]
 }
 
 resource "aws_db_parameter_group" "default" {

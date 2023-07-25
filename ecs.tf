@@ -69,7 +69,7 @@ resource "aws_ecs_service" "dealver" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.ecs_target_group.id
+    target_group_arn = aws_lb_target_group.blue.id
     container_name   = "${var.APP_NAME}-${var.Environment}-container"
     container_port   = 3000
   }
